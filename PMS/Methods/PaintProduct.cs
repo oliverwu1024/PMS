@@ -34,9 +34,9 @@ public class PaintProduct: IBuyable
         return Math.Round(Price * (1m - (decimal) discount / 100m) * (1m + (decimal)TaxRate/100m), 2);
     }
 
-    public void DisplayInfo ()
+    public string DisplayInfo ()
     {
-        Console.WriteLine($"Product Name: {Name}\nProduct Type: {Type}\nPaint Specification: {Specification.DisplaySpecification()}\nPrice: {Price}\nTax rate: {TaxRate}");
+        return $"Product Name: {Name}\nProduct Type: {Type}\nPaint Specification: {Specification.DisplaySpecification()}\nPrice: {Price}\nTax rate: {TaxRate}";
     }
 
     public int GetMaxDiscount (int rate = DefaultDiscount, bool isOverridable = false) 
