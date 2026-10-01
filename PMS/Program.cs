@@ -2,26 +2,28 @@
 using PMS.Enums;
 using PMS.Interfaces;
 using System.Net.Http.Headers;
+using System.ComponentModel;
 
 //first product
 PaintType type1 = PaintType.BaseCoat;
 PaintSpecification spec1 = new PaintSpecification("Red", 5);
-PaintProduct product1 = new PaintProduct("Robo", type1, spec1, 100);
+PaintProduct product1 = new PaintProduct(Brand.Dulux, "Robo", type1, spec1, 100);
 //second product 
 PaintType type2 = PaintType.Glossy;
 PaintSpecification spec2 = new PaintSpecification("blue", 15);
-PaintProduct product2 = new PaintProduct("Solo", type2, spec2, 50);
+PaintProduct product2 = new PaintProduct(Brand.Haymes,"Solo", type2, spec2, 50);
 
 
 //third product
 PaintType type3 = PaintType.Matte;
 PaintSpecification spec3 = new PaintSpecification("black", 8);
-PaintProduct product3 = new PaintProduct("Polar", type3, spec3, 75);
+PaintProduct product3 = new PaintProduct(Brand.Porters,"Polar", type3, spec3, 75);
 
 //display all products
 PaintProduct[] allProducts = [product1, product2, product3]; 
+PaintStore storedProducts = new PaintStore(allProducts);
 int count = 1;
-foreach (PaintProduct product in allProducts)
+foreach (PaintProduct product in storedProducts.AllProducts())
 {
     Console.WriteLine($"Product #{count}");
     Console.WriteLine(product.DisplayInfo());
@@ -30,6 +32,6 @@ foreach (PaintProduct product in allProducts)
 
 
 //display order detail
-Order order1 = new Order(product1, 5);
-Console.WriteLine(order1.DisplayOrder());
+Order orders = new Order([product1, product2, product3], [6,8,10]);
+orders.DisplayOrder();
 

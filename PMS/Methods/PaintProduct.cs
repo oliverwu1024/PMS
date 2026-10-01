@@ -1,4 +1,6 @@
 namespace PMS.Methods;
+
+using System.ComponentModel;
 using PMS.Enums;
 using PMS.Interfaces;
 
@@ -9,6 +11,8 @@ public class PaintProduct: IBuyable
 
     const int DefaultDiscount = 5;
 
+    public Brand BrandName;
+
     public string Name {get;set;}
 
     public PaintType Type {get;set;}
@@ -17,8 +21,9 @@ public class PaintProduct: IBuyable
 
     public decimal Price {get;set;}
 
-    public PaintProduct (string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)
-    {
+    public PaintProduct (Brand brand,string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)
+    {   
+        BrandName = brand;
         Name = name;
         Type = type;
         Specification = specification;
@@ -36,7 +41,7 @@ public class PaintProduct: IBuyable
 
     public string DisplayInfo ()
     {
-        return $"Product Name: {Name}\nProduct Type: {Type}\nPaint Specification: {Specification.DisplaySpecification()}\nPrice: {Price}\nTax rate: {TaxRate}";
+        return $"Brand: {BrandName}\nProduct Name: {Name}\nProduct Type: {Type}\nPaint Specification: {Specification.DisplaySpecification()}\nPrice: {Price}\nTax rate: {TaxRate}";
     }
 
     public int GetMaxDiscount (int rate = DefaultDiscount, bool isOverridable = false) 
