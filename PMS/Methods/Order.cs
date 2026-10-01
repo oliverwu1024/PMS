@@ -15,9 +15,9 @@ public class Order
         TotalPrice = GetTotalPrice();
     }
 
-    public void DisplayOrder()
+    public string DisplayOrder()
     {
-        Console.WriteLine($"Product is:\n\n{Product.DisplayInfo()}\n\nQuantity {Quantity}\nTotal {TotalPrice}");
+        return $"Product is:\n\n{Product.DisplayInfo()}\n\nQuantity {Quantity}\nTotal {TotalPrice}";
     }
 
     public decimal GetTotalPrice ()
