@@ -12,9 +12,9 @@ public class PaintSpecification
         SizeInLiters = liters;
     }
 
-    public void DisplaySpecification ()
+    public string DisplaySpecification ()
     {
-        Console.WriteLine($"The paint color is {Color}. The size is {SizeInLiters}");
+        return $"The paint color is {Color}. The size is {SizeInLiters}";
     }
 
 }
