@@ -12,4 +12,6 @@ PaintProduct product1 = new PaintProduct("Robo", type1, spec1, 100);
 
 Console.WriteLine(product1.GetFinalPrice());
 
+Order order1 = new Order(product1, 5);
+order1.DisplayOrder();
 
