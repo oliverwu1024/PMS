@@ -48,6 +48,53 @@ public class Order
 
     }
 
+    public void AddProduct(PaintProduct newPaintProduct)
+    {
+        Products.Add(newPaintProduct);
+    }
+
+    public void AddProducts(List<PaintProduct> newPaintProducts)
+    {
+        Products.AddRange(newPaintProducts);        
+    }
+
+    public void RemoveProduct(PaintProduct removeProduct)
+    {
+        Products.Remove(removeProduct);
+    }
+
+    public void ContainsProduct (PaintProduct checkContains)
+    {
+        if (Products.Contains(checkContains))
+        {
+            Console.WriteLine($"The order contains the product {checkContains}");
+        }
+
+        else
+        {
+            Console.WriteLine($"The order does contain the product {checkContains}");    
+        }
+        
+    }
+
+    public void FindProductByName(PaintProduct findProduct)
+    {
+        if (Products.FindAll(p => p.Name==findProduct.Name).Count == 0)
+        {
+            Console.WriteLine("Cannot find matching product names");
+        }
+        else if (Products.FindAll(p => p.Name==findProduct.Name).Count == 1)
+        {
+            Console.WriteLine($"Found a matching product name {findProduct.Name}");
+        }
+        else
+        {
+            Console.WriteLine($"Found {Products.FindAll(p => p.Name==findProduct.Name).Count} matching product names {findProduct.Name}");
+        }
+    }
+
+
+
 
 
 
