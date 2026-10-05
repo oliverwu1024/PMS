@@ -93,8 +93,32 @@ public class Order
         }
     }
 
+    public bool CheckIfHasNullName()
+    {
+        return Products.Any((PaintProduct paintProduct) =>
+        {
+            if(paintProduct.Name == null) {return true;}
+            else {return false;}
+        }
+        );
+    }
+
+    public List<PaintProduct> GetExpensivePaintProducts()
+    {
+        IEnumerable<PaintProduct> products = Products.Where(
+            (PaintProduct paintProduct) =>
+            {
+                if (paintProduct.Price > 10) {return true;}
+                return false;
+            }
+            
+
+        );
+        return products.ToList();
 
 
+
+    }
 
 
 
