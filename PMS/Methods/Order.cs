@@ -11,12 +11,15 @@ public class Order
     public List <PaintProduct> Products;
     public List<int> Quantities;
     public decimal TotalPrice;
-
-    public Order (List <PaintProduct> paintProducts, List<int> quantities)
+    
+    public int UserId;
+    public Order (int userId, List <PaintProduct> paintProducts, List<int> quantities, OrderHistory history)
     {
+        UserId = userId;
         Products = new List <PaintProduct> (paintProducts);
         Quantities = new List<int> (quantities);
         TotalPrice = GetTotalOrderPrice();
+        history.AddOrder(this);
     }
 
     public void DisplayOrder()
