@@ -1,5 +1,6 @@
 using System.Security.Principal;
 using System.Text;
+using PMS.Enums;
 
 namespace PMS.Methods;
 
@@ -93,8 +94,93 @@ public class Order
         }
     }
 
+    public bool CheckIfHasNullName()
+    {
+        return Products.Any((PaintProduct paintProduct) =>
+        {
+            if(paintProduct.Name == null) {return true;}
+            else {return false;}
+        }
+        );
+    }
+
+    public List<PaintProduct> GetExpensivePaintProducts()
+    {   
+        /*
+        IEnumerable<PaintProduct> products = Products.Where(
+            (PaintProduct paintProduct) =>
+            {
+                if (paintProduct.Price > 10) {return true;}
+                return false;
+            }
+            
+
+        );
+        return products.ToList();
+        */
+        return Products.Where(p => p.Price >10).ToList();
 
 
+    }
+    public List<PaintProduct> GetMostExpensivePaintProducts()
+    {   
+        /*
+        IEnumerable<PaintProduct> products = Products.Where(
+            (PaintProduct paintProduct) =>
+            {
+                if (paintProduct.Price > 10) {return true;}
+                return false;
+            }
+            
+
+        );
+        return products.ToList();
+        */
+        decimal maxPrice = Products.Max(p => p.Price);
+
+        return Products.Where(p => p.Price == maxPrice).ToList();
+
+
+    }
+
+    // I am not sure about this as in the previous homework there is no product ID
+    // I added an ID in product
+    public void RemoveProduct (int productId)
+    {
+        Products.RemoveAll(p => p.Id == productId);
+    }
+
+    // used original price not discounted final price
+    public List <PaintProduct> FindProductBetweenPrice (decimal x, decimal y)
+    {
+        return Products.Where(p => p.Price < y && p.Price >x).ToList();
+    }
+
+    public void TypeTotalPrice ()
+    {
+        List <PaintType> types = new List<PaintType>();
+        List <decimal> prices= new List<decimal>();
+
+        foreach (PaintProduct product in Products)
+        {
+            if (types.Contains(product.Type))
+            {
+                int idx = types.IndexOf(product.Type);
+                prices[idx] += product.Price;
+            }
+            else
+            {
+                types.Add(product.Type);
+                prices.Add(product.Price);
+            }
+        }
+        
+        for (int i = 0; i < types.Count; i++)
+        {
+            Console.WriteLine($"The total price of paint type {types[i]} is {prices[i]}");
+        }
+        
+    }
 
 
 
