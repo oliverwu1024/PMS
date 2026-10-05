@@ -11,6 +11,8 @@ public class PaintProduct: IBuyable
 
     const int DefaultDiscount = 5;
 
+    public int Id {get;set;}
+
     public Brand BrandName;
 
     public string Name {get;set;}
@@ -21,8 +23,9 @@ public class PaintProduct: IBuyable
 
     public decimal Price {get;set;}
 
-    public PaintProduct (Brand brand,string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)
+    public PaintProduct (int id, Brand brand,string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)
     {   
+        Id =Id;
         BrandName = brand;
         Name = name;
         Type = type;
