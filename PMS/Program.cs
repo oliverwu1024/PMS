@@ -30,8 +30,9 @@ foreach (PaintProduct product in storedProducts.AllProducts())
     count+=1;
 }
 
+OrderHistory history = new OrderHistory();  
 
 //display order detail
-Order orders = new Order([product1, product2, product3], [6,8,10]);
+Order orders = new Order(1234,[product1, product2, product3], [6,8,10],history);
 orders.DisplayOrder();
 
