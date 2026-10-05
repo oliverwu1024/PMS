@@ -104,7 +104,8 @@ public class Order
     }
 
     public List<PaintProduct> GetExpensivePaintProducts()
-    {
+    {   
+        /*
         IEnumerable<PaintProduct> products = Products.Where(
             (PaintProduct paintProduct) =>
             {
@@ -115,7 +116,8 @@ public class Order
 
         );
         return products.ToList();
-
+        */
+        return Products.Where(p => p.Price >10).ToList();
 
 
     }
