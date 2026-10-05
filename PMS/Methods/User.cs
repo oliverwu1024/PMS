@@ -41,6 +41,12 @@ public class User
         return PaymentHistory.Payments.Where(payment=> payment.UserId == UserId && payment.PaymentAmount == leastExpensive).ToList();
     }   
 
+    public List <Payment> PaymentGreaterThanTen()
+    {
+
+        return PaymentHistory.Payments.Where(payment=> payment.UserId == UserId && payment.PaymentAmount > 10).ToList();
+    }   
+
 
     
 }
