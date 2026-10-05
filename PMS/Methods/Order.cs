@@ -7,20 +7,20 @@ public class Order
 {
     public readonly DateTimeOffset CreatedAt = DateTimeOffset.UtcNow;
 
-    public PaintProduct[] Products;
-    public int[] Quantities;
+    public List <PaintProduct> Products;
+    public List<int> Quantities;
     public decimal TotalPrice;
 
-    public Order (PaintProduct[] paintProducts, int[] quantities)
+    public Order (List <PaintProduct> paintProducts, List<int> quantities)
     {
-        Products = paintProducts;
-        Quantities = quantities;
+        Products = new List <PaintProduct> (paintProducts);
+        Quantities = new List<int> (quantities);
         TotalPrice = GetTotalOrderPrice();
     }
 
     public void DisplayOrder()
     {
-        for (int i = 0; i<Products.Length;i++)
+        for (int i = 0; i<Products.Count;i++)
         {
             Console.WriteLine($"Product is:\n\n{Products[i].DisplayInfo()}\n\nQuantity {Quantities[i]}\nProduct total price {Products[i].GetFinalPrice() * (decimal) Quantities[i]}");
 
@@ -39,7 +39,7 @@ public class Order
     public decimal GetTotalOrderPrice()
     {
         decimal total = 0;
-        for (int i = 0; i<Products.Length;i++)
+        for (int i = 0; i<Products.Count;i++)
         {
             total += Products[i].GetFinalPrice() * (decimal) Quantities[i];
         }

@@ -20,7 +20,7 @@ PaintSpecification spec3 = new PaintSpecification("black", 8);
 PaintProduct product3 = new PaintProduct(Brand.Porters,"Polar", type3, spec3, 75);
 
 //display all products
-PaintProduct[] allProducts = [product1, product2, product3]; 
+List <PaintProduct> allProducts = [product1, product2, product3]; 
 PaintStore storedProducts = new PaintStore(allProducts);
 int count = 1;
 foreach (PaintProduct product in storedProducts.AllProducts())
