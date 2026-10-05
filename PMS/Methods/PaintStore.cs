@@ -2,13 +2,13 @@ namespace PMS.Methods;
 
 public class PaintStore
 {
-    public PaintProduct[] Products;
-    public PaintStore (PaintProduct[] products)
+    public List<PaintProduct> Products;
+    public PaintStore (List<PaintProduct> products)
     {
-        Products = products;
+        Products = new List<PaintProduct>(products);
     }
 
-    public PaintProduct[] AllProducts()
+    public List<PaintProduct> AllProducts()
     {
         return Products;
     }
