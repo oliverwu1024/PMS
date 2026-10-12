@@ -1,16 +1,28 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace PaintStore.Models.Methods;
 
 public class User
-{
+{   
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public string UserName {get;set;}
+
+    [EmailAddress]
+    public string UserEmail {get;set;}
+
+    [Phone]
+    public string UserPhone {get;set;}
 
     public int Age {get;set;}
 
     public int UserId {get;set;}
 
-    public User(string userName, int age, int userId)
+    public User(string userName, string userEmail, string userPhone,  int age, int userId)
     {
         UserName = userName;
+        UserEmail = userEmail;
+        UserPhone = userPhone;
         Age = age;
         UserId =userId;
         OrderHistory = new OrderHistory();
