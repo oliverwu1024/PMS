@@ -6,6 +6,8 @@ public class PaintSpecification
 {
     public string Color {get;set;}
     public int SizeInLiters {get;set;}
+
+    //private PaintSpecification(){}
     public PaintSpecification (string color, int liters)
     {
         Color = color;

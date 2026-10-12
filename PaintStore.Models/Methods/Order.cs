@@ -5,9 +5,11 @@ using PaintStore.Models.Enums;
 namespace PaintStore.Models.Methods;
 
 public class Order
-{
+{   
+    
+
     public int OrderId {get;set;}
-    public DateTimeOffset CreatedAt {get;} = DateTimeOffset.UtcNow;
+    public DateTimeOffset CreatedAt {get; set;} = DateTimeOffset.UtcNow;
 
     public List <PaintProduct> Products {get;set;}
     public List<int> Quantities {get;set;}

@@ -1,20 +1,25 @@
 namespace PaintStore.Models.Methods;
 
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using PaintStore.Models.Enums;
 using PaintStore.Models.Interfaces;
 
 
 public class PaintProduct: IBuyable
 {
-    public readonly int TaxRate;
+    public int TaxRate {get; set;}
+    public DateTime CreatedAt {get;set;} =DateTime.UtcNow;
+
 
     const int DefaultDiscount = 5;
 
+    [Required] //data annotation for entity framework
     public int Id {get;set;}
 
     public Brand BrandName {get;set;}
 
+    [StringLength(50)] //data annotation for entity framework
     public string Name {get;set;}
 
     public PaintType Type {get;set;}
@@ -22,6 +27,8 @@ public class PaintProduct: IBuyable
     public PaintSpecification Specification {get;set;}
 
     public decimal Price {get;set;}
+
+    private PaintProduct() {}
 
     public PaintProduct (int id, Brand brand,string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)
     {   
