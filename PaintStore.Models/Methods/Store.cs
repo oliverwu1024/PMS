@@ -1,9 +1,9 @@
 namespace PaintStore.Models.Methods;
 
-public class PaintStore
+public class Store
 {
     public List<PaintProduct> Products;
-    public PaintStore (List<PaintProduct> products)
+    public Store (List<PaintProduct> products)
     {
         Products = new List<PaintProduct>(products);
     }

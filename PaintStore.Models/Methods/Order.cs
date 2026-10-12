@@ -6,15 +6,17 @@ namespace PaintStore.Models.Methods;
 
 public class Order
 {
-    public readonly DateTimeOffset CreatedAt = DateTimeOffset.UtcNow;
+    public int OrderId {get;set;}
+    public DateTimeOffset CreatedAt {get;} = DateTimeOffset.UtcNow;
 
-    public List <PaintProduct> Products;
-    public List<int> Quantities;
-    public decimal TotalPrice;
+    public List <PaintProduct> Products {get;set;}
+    public List<int> Quantities {get;set;}
+    public decimal TotalPrice {get;set;}
     
-    public int UserId;
-    public Order (int userId, List <PaintProduct> paintProducts, List<int> quantities, OrderHistory history)
-    {
+    public int UserId {get;set;}
+    public Order (int orderId, int userId, List <PaintProduct> paintProducts, List<int> quantities, OrderHistory history)
+    {   
+        OrderId = orderId;
         UserId = userId;
         Products = new List <PaintProduct> (paintProducts);
         Quantities = new List<int> (quantities);

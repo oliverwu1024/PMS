@@ -13,7 +13,7 @@ public class PaintProduct: IBuyable
 
     public int Id {get;set;}
 
-    public Brand BrandName;
+    public Brand BrandName {get;set;}
 
     public string Name {get;set;}
 
@@ -25,7 +25,7 @@ public class PaintProduct: IBuyable
 
     public PaintProduct (int id, Brand brand,string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)
     {   
-        Id =Id;
+        Id =id;
         BrandName = brand;
         Name = name;
         Type = type;
