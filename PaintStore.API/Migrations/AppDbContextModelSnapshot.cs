@@ -22,6 +22,53 @@ namespace PaintStore.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("PaintStore.Models.Methods.Order", b =>
+                {
+                    b.Property<int>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Quantities")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.PaintBrand", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PaintBrands");
+                });
+
             modelBuilder.Entity("PaintStore.Models.Methods.PaintProduct", b =>
                 {
                     b.Property<int>("Id")
@@ -41,9 +88,15 @@ namespace PaintStore.API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("int");
 
                     b.Property<int>("TaxRate")
                         .HasColumnType("int");
@@ -53,11 +106,91 @@ namespace PaintStore.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("SeriesId");
+
                     b.ToTable("PaintProducts");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.PaintSeries", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BrandId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.ToTable("PaintSeries");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.User", b =>
+                {
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserPhone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("UserEmail")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.Order", b =>
+                {
+                    b.HasOne("PaintStore.Models.Methods.User", null)
+                        .WithMany("OrderList")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PaintStore.Models.Methods.PaintProduct", b =>
                 {
+                    b.HasOne("PaintStore.Models.Methods.Order", null)
+                        .WithMany("Products")
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("PaintStore.Models.Methods.PaintSeries", "Series")
+                        .WithMany("Products")
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.OwnsOne("PaintStore.Models.Methods.PaintSpecification", "Specification", b1 =>
                         {
                             b1.Property<int>("PaintProductId")
@@ -78,8 +211,41 @@ namespace PaintStore.API.Migrations
                                 .HasForeignKey("PaintProductId");
                         });
 
+                    b.Navigation("Series");
+
                     b.Navigation("Specification")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.PaintSeries", b =>
+                {
+                    b.HasOne("PaintStore.Models.Methods.PaintBrand", "Brand")
+                        .WithMany("PaintSeries")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.Order", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.PaintBrand", b =>
+                {
+                    b.Navigation("PaintSeries");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.PaintSeries", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("PaintStore.Models.Methods.User", b =>
+                {
+                    b.Navigation("OrderList");
                 });
 #pragma warning restore 612, 618
         }

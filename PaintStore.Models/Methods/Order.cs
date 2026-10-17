@@ -16,6 +16,8 @@ public class Order
     public decimal TotalPrice {get;set;}
     
     public int UserId {get;set;}
+
+    private Order () {}
     public Order (int orderId, int userId, List <PaintProduct> paintProducts, List<int> quantities, OrderHistory history)
     {   
         OrderId = orderId;

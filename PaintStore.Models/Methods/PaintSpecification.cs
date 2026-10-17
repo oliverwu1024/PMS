@@ -8,10 +8,10 @@ public class PaintSpecification
     public int SizeInLiters {get;set;}
 
     //private PaintSpecification(){}
-    public PaintSpecification (string color, int liters)
+    public PaintSpecification (string color, int sizeInLiters)
     {
         Color = color;
-        SizeInLiters = liters;
+        SizeInLiters = sizeInLiters;
     }
 
     public string DisplaySpecification ()
