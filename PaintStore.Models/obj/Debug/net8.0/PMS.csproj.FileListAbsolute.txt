@@ -1,0 +1,15 @@
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.GeneratedMSBuildEditorConfig.editorconfig
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.AssemblyInfoInputs.cache
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.AssemblyInfo.cs
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.csproj.CoreCompileInputs.cache
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.sourcelink.json
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/bin/Debug/net8.0/PMS
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/bin/Debug/net8.0/PMS.deps.json
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/bin/Debug/net8.0/PMS.runtimeconfig.json
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/bin/Debug/net8.0/PMS.dll
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/bin/Debug/net8.0/PMS.pdb
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.dll
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/refint/PMS.dll
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.pdb
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/PMS.genruntimeconfig.cache
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PMS/obj/Debug/net8.0/ref/PMS.dll

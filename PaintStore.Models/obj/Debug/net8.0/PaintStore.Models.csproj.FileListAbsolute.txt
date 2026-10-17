@@ -1,0 +1,12 @@
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.GeneratedMSBuildEditorConfig.editorconfig
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.AssemblyInfoInputs.cache
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.AssemblyInfo.cs
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.csproj.CoreCompileInputs.cache
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.sourcelink.json
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/bin/Debug/net8.0/PaintStore.Models.deps.json
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/bin/Debug/net8.0/PaintStore.Models.dll
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/bin/Debug/net8.0/PaintStore.Models.pdb
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.dll
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/refint/PaintStore.Models.dll
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/PaintStore.Models.pdb
+/home/oliver1024/Learning/distinction-coding/backend/assignment-1/PMS/PaintStore.Models/obj/Debug/net8.0/ref/PaintStore.Models.dll
