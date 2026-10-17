@@ -28,6 +28,11 @@ public class PaintProduct: IBuyable
 
     public decimal Price {get;set;}
 
+    public int SeriesId {get;set;}
+
+    public PaintSeries Series {get;set;}
+
+
     private PaintProduct() {}
 
     public PaintProduct (int id, Brand brand,string name, PaintType type, PaintSpecification specification, decimal price, int taxRate = 10)

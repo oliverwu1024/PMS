@@ -8,6 +8,8 @@ using PaintStore.Models.Methods;
 using PaintStore.API.Dtos;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Reflection.Metadata;
+using PaintStore.API.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace PaintStore.API.Controllers;
 
@@ -15,47 +17,18 @@ namespace PaintStore.API.Controllers;
 [Route("api/[controller]")]
 public sealed class PaintProductController: ControllerBase 
 { 
-    public static readonly List<PaintProduct> ProductsMock1 = new()
-    {
-        new PaintProduct(1, Brand.Dulux, "Interior Matte", PaintType.Matte, new PaintSpecification("White", 4), 29.99m),
-        new PaintProduct(2, Brand.Taubmans, "Exterior Gloss", PaintType.Gloss, new PaintSpecification("Blue", 10), 39.50m),
-        new PaintProduct(3, Brand.Haymes, "Primer", PaintType.BaseCoat, new PaintSpecification("Gray", 15), 19.00m),
-    
-    };
+    private readonly AppDbContext _db;
 
-    public static List<PaintProduct> ProductsMock2 = new()
-    {
-        new PaintProduct(1, Brand.Dulux, "Interior Matte", PaintType.Matte, new PaintSpecification("White", 4), 29.99m),
-        new PaintProduct(2, Brand.Taubmans, "Exterior Gloss", PaintType.Gloss, new PaintSpecification("Blue", 10), 39.50m),
-        new PaintProduct(3, Brand.Haymes, "Primer", PaintType.BaseCoat, new PaintSpecification("Gray", 15), 19.00m),
-    
-    };
-
-    public static OrderHistory history1 = new OrderHistory(); 
-    public static OrderHistory history2 = new OrderHistory(); 
-
-
-    private static readonly List<Order> OrdersMock = new()
-    {
-        new Order(1,1234, ProductsMock1, new List<int> {5, 10, 15}, history1){ CreatedAt = DateTimeOffset.UtcNow.AddDays(-3) },
-        new Order(2,5678, ProductsMock2, new List<int> {7, 19, 14}, history2){ CreatedAt = DateTimeOffset.UtcNow.AddDays(-45) },
-    };
-    private static int _nextOrderId = 3;
-
-     private static readonly List<User> UsersMock = new()
-    {
-        new User("Steven", "steven@example.com", "0400000000", 20, 1234),
-        new User("Rachel", "rachel@example.com", "0400000123" ,25, 5678),
-    };   
-
-
+    public PaintProductController(AppDbContext db) {
+        _db=db;
+    }
 
 
     //创建一个API接口Endpoint, 获取所有PaintProduct (无数据， 从MOCK数据拿)
     [HttpGet("all")]
     public ActionResult<IEnumerable<PaintProduct>> GetAll()
     {
-        return ProductsMock1.OrderBy((product=>product.Id)).ToList();
+        return _db.PaintProducts.OrderBy((product=>product.Id)).ToList();
     }
 
     //创建一个API接口Endpoint, 获取所有Orders (无数据，从内存拿)
@@ -70,7 +43,7 @@ public sealed class PaintProductController: ControllerBase
     [HttpGet("orders/order/{id:int}")]
     public ActionResult<Order> GetOrderById(int id)
     {
-        var order = OrdersMock.FirstOrDefault(o=>o.OrderId ==id);
+        var order = _db.Orders.Include(o => o.Products).FirstOrDefault(o=>o.OrderId ==id);
         return order is null ? NotFound(): Ok(order);
     }
 
@@ -86,18 +59,30 @@ public sealed class PaintProductController: ControllerBase
         var products = new List<PaintProduct>();
         foreach (var productId in request.ProductIds)
         {
-            var product = ProductsMock1.FirstOrDefault(p=>p.Id == productId);
+            var product = _db.PaintProducts.FirstOrDefault(p=>p.Id == productId);
             if (product is null) {
                 return NotFound($"Product {productId} not found");
             }
             products.Add(product);
         }
 
-        var order = new Order(_nextOrderId++, request.UserId, products, request.Quantities, history1);
-        OrdersMock.Add(order);
+        using var tx = _db.Database.BeginTransaction();
+        try 
+        {
+            var order = new Order(0, request.UserId, products, request.Quantities, new OrderHistory());
+	
+            _db.Orders.Add(order);
+            _db.SaveChanges();
+            tx.Commit();
+            // 201 Created + Location header pointing to get orders/{id}
+            return CreatedAtAction(nameof(GetOrderById), new {id =order.OrderId}, order);
+        }
+        catch
+        {
+            tx.Rollback();
+            throw;
+        }
 
-        // 201 Created + Location header pointing to get orders/{id}
-        return CreatedAtAction(nameof(GetOrderById), new {id =order.OrderId}, order);
     }
 
     // 创建新的Endpoint FilterOrders, 传入MaxPrice和MinPrice, 筛选总价在两者之间的订单
@@ -109,7 +94,7 @@ public sealed class PaintProductController: ControllerBase
             return BadRequest("minPrice cannot be greater than max price");
         }
 
-        var result = OrdersMock.Where(o=>o.TotalPrice >= minPrice && o.TotalPrice <= maxPrice).ToList();
+        var result = _db.Orders.Include(o => o.Products).Where(o=>o.TotalPrice >= minPrice && o.TotalPrice <= maxPrice).ToList();
         return Ok(result);
     }
 
@@ -122,20 +107,20 @@ public sealed class PaintProductController: ControllerBase
             return BadRequest("pageNumber and pageSize must be at least 1.");
         }
 
-        var orders = OrdersMock.OrderBy(o=>o.OrderId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var orders = _db.Orders.Include(o => o.Products).OrderBy(o=>o.OrderId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         return Ok(orders);
     }
     [HttpGet("orders/paint/{paintId}")]
     public ActionResult<IEnumerable<Order>> GetOrdersByPaintId (int paintId)
     {
-        var orders = OrdersMock.Where(o => o.Products.Any(p=>p.Id == paintId)).ToList();
+        var orders = _db.Orders.Include(o => o.Products).Where(o => o.Products.Any(p=>p.Id == paintId)).ToList();
         return orders.Count == 0 ? NotFound(): Ok(orders);
     }
 
     [HttpGet("orders/user/{userId}")]     
     public ActionResult<IEnumerable<Order>> GetOrdersByUserId (int userId)
     {
-        var orders = OrdersMock.Where(o=>o.UserId == userId).ToList();
+        var orders = _db.Orders.Include(o => o.Products).Where(o=>o.UserId == userId).ToList();
         return orders.Count == 0 ? NotFound(): Ok(orders);
     }   
 
@@ -144,7 +129,7 @@ public sealed class PaintProductController: ControllerBase
     { 
         var oneMonthAgo = DateTimeOffset.UtcNow.AddMonths(-1);
 
-        var orders = OrdersMock
+        var orders = _db.Orders.Include(o => o.Products)
             .Where(o => o.CreatedAt >= oneMonthAgo)
             .ToList();
 
@@ -153,7 +138,7 @@ public sealed class PaintProductController: ControllerBase
     [HttpGet("orders/date/{date}")]
     public ActionResult<IEnumerable<Order>> GetOrdersByDate(DateTime date)
     {
-        var orders = OrdersMock
+        var orders = _db.Orders.Include(o => o.Products)
             .Where(o => o.CreatedAt.Date == date.Date)
             .ToList();
 
@@ -168,7 +153,7 @@ public sealed class PaintProductController: ControllerBase
             return BadRequest("pageNumber and pageSize must be at least 1.");
         }
 
-        var products = ProductsMock1.OrderBy(p=>p.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var products = _db.PaintProducts.OrderBy(p=>p.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         return Ok(products);
     }
     [HttpGet("paintproducts/filter")]
@@ -179,14 +164,14 @@ public sealed class PaintProductController: ControllerBase
             return BadRequest("minPrice cannot be greater than max price");
         }
 
-        var result = ProductsMock1.Where(p=>p.Price >= minPrice && p.Price <= maxPrice).ToList();
+        var result = _db.PaintProducts.Where(p=>p.Price >= minPrice && p.Price <= maxPrice).ToList();
         return Ok(result);
     }
 
     [HttpGet("paintproducts/paint/{paintId:int}")]
     public ActionResult<PaintProduct> GetPaintProductsByPaintId (int paintId)
     {
-        var products = ProductsMock1.FirstOrDefault(p =>p.Id == paintId);
+        var products = _db.PaintProducts.FirstOrDefault(p =>p.Id == paintId);
         return products is null ? NotFound(): Ok(products);
     }
 
@@ -196,7 +181,7 @@ public sealed class PaintProductController: ControllerBase
     [HttpGet("paintproducts/user/{userId}")]     
     public ActionResult<IEnumerable<PaintProduct>> GetPaintProductsByUserId (int userId)
     {
-        var products = OrdersMock.Where(o => o.UserId == userId).SelectMany(o => o.Products).DistinctBy(p => p.Id).ToList();
+        var products = 	_db.Orders.Include(o => o.Products).Where(o => o.UserId == userId).SelectMany(o => o.Products).DistinctBy(p => p.Id).ToList();
 
         return products.Count == 0 ? NotFound(): Ok(products);
     }  
@@ -213,26 +198,26 @@ public sealed class PaintProductController: ControllerBase
             return BadRequest("pageNumber and pageSize must be at least 1.");
         }
 
-        var users = UsersMock.OrderBy(u=>u.UserId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var users = _db.Users.OrderBy(u=>u.UserId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
         return Ok(users);
     }
     [HttpGet("users/user/{userId:int}")]
     public ActionResult<User> GetUserById (int userId)
     {
-        var user =  UsersMock.FirstOrDefault(u =>u.UserId ==userId);
+        var user =  _db.Users.FirstOrDefault(u =>u.UserId ==userId);
         return user is null ? NotFound(): Ok(user);
     }
     [HttpGet("users/username/{userName}")]
     public ActionResult<IEnumerable<User>> GetUserByName (string userName)
     {
-        var users =  UsersMock.Where(u =>u.UserName ==userName).ToList();
+        var users =  _db.Users.Where(u =>u.UserName ==userName).ToList();
         return users.Count == 0 ? NotFound(): Ok(users);
     }
 
     [HttpGet("users/usermail/{userMail}")]
     public ActionResult<IEnumerable<User>> GetUserByEmail (string userMail)
     {
-        var users =  UsersMock.Where(u =>u.UserEmail ==userMail).ToList();
+        var users =  _db.Users.Where(u =>u.UserEmail ==userMail).ToList();
         return users.Count == 0 ? NotFound(): Ok(users);
     }
 

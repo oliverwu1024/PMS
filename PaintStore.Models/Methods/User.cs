@@ -18,6 +18,8 @@ public class User
 
     public int UserId {get;set;}
 
+    private User() {}
+
     public User(string userName, string userEmail, string userPhone,  int age, int userId)
     {
         UserName = userName;
