@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System.Reflection.Metadata;
 using PaintStore.API.Data;
 using Microsoft.EntityFrameworkCore;
+using PaintStore.API.Services;
 
 namespace PaintStore.API.Controllers;
 
@@ -19,8 +20,13 @@ public sealed class PaintProductController: ControllerBase
 { 
     private readonly AppDbContext _db;
 
-    public PaintProductController(AppDbContext db) {
-        _db=db;
+    private readonly PaintProductService _paintProductService; 
+
+    public PaintProductController(PaintProductService paintProductService) {
+        //_db=db;
+        _paintProductService = paintProductService;
+       // _paintProductService = new PaintProductService();
+        //_paintProductService = paintProductService;
     }
 
 
@@ -171,6 +177,8 @@ public sealed class PaintProductController: ControllerBase
     [HttpGet("paintproducts/paint/{paintId:int}")]
     public ActionResult<PaintProduct> GetPaintProductsByPaintId (int paintId)
     {
+        //using service layer
+        var serviceProducts = _paintProductService.GetPaintProductById(paintId);
         var products = _db.PaintProducts.FirstOrDefault(p =>p.Id == paintId);
         return products is null ? NotFound(): Ok(products);
     }
