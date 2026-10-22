@@ -1,6 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using PaintStore.API.Data;
 using System.Text.Json.Serialization;
+using PaintStore.API.Services;
+using PaintStore.API.Repos;
+using Microsoft.AspNetCore.Mvc;
+using PaintStore.API.Middleware;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,9 +28,28 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+builder.Services.AddScoped<PaintProductService /*, PaintProductMockService*/>();
+builder.Services.AddScoped<PaintProductRepository>();
+builder.Services.AddSingleton<ExceptionHandlingService>();
+/*
+var controller = new Controller(service);
 
+dbcontext
+repo
+service
+*/
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionHandlingService = context.RequestServices.GetRequiredService<ExceptionHandlingService>();
+        await exceptionHandlingService.HandleExceptionAsync(context);
+
+    });
+});
 
 // Automatically apply migrations on startup
 /*
