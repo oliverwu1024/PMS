@@ -20,11 +20,16 @@ public sealed class PaintProductController: ControllerBase
 { 
     private readonly AppDbContext _db;
 
-    private readonly PaintProductService _paintProductService; 
+    private readonly IPaintProductService _paintProductService;
+    private readonly ILogger<PaintProductController> _logger; 
 
-    public PaintProductController(PaintProductService paintProductService) {
+    private readonly IOrderService _orderService;
+
+    public PaintProductController(IPaintProductService paintProductService, ILogger<PaintProductController> logger, IOrderService orderService) {
         //_db=db;
         _paintProductService = paintProductService;
+        _logger = logger;
+        _orderService = orderService;
        // _paintProductService = new PaintProductService();
         //_paintProductService = paintProductService;
     }
@@ -47,106 +52,65 @@ public sealed class PaintProductController: ControllerBase
     */
 
     [HttpGet("orders/order/{id:int}")]
-    public ActionResult<Order> GetOrderById(int id)
+    public async Task<ActionResult<Order>> GetOrderById(int id)
     {
-        var order = _db.Orders.Include(o => o.Products).FirstOrDefault(o=>o.OrderId ==id);
-        return order is null ? NotFound(): Ok(order);
+        var order = await _orderService.GetByIdAsync(id);
+        return Ok(order);
     }
 
     // 创建新的CreateOrder接口, 传入参数, 返回201
     [HttpPost("orders")]
-    public ActionResult<Order> CreateOrder([FromBody] CreateOrderRequest request)
+    public async Task<ActionResult<Order>> CreateOrder([FromBody] CreateOrderRequest request)
     {
-        if (request.ProductIds.Count == 0 || request.ProductIds.Count != request.Quantities.Count)
-        {
-            return BadRequest("ProductIds and Quantities must be non-empty and the same length.");
-        }
-
-        var products = new List<PaintProduct>();
-        foreach (var productId in request.ProductIds)
-        {
-            var product = _db.PaintProducts.FirstOrDefault(p=>p.Id == productId);
-            if (product is null) {
-                return NotFound($"Product {productId} not found");
-            }
-            products.Add(product);
-        }
-
-        using var tx = _db.Database.BeginTransaction();
-        try 
-        {
-            var order = new Order(0, request.UserId, products, request.Quantities, new OrderHistory());
-	
-            _db.Orders.Add(order);
-            _db.SaveChanges();
-            tx.Commit();
-            // 201 Created + Location header pointing to get orders/{id}
-            return CreatedAtAction(nameof(GetOrderById), new {id =order.OrderId}, order);
-        }
-        catch
-        {
-            tx.Rollback();
-            throw;
-        }
+        var order = await _orderService.CreateOrderAsync(request);
+        return CreatedAtAction(nameof(GetOrderById), new {id = order.OrderId}, order);
 
     }
 
     // 创建新的Endpoint FilterOrders, 传入MaxPrice和MinPrice, 筛选总价在两者之间的订单
     [HttpGet("orders/filter")]
-    public ActionResult<IEnumerable<Order>> GetOrdersByPriceRange([FromQuery] decimal minPrice, [FromQuery] decimal maxPrice)
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByPriceRange([FromQuery] decimal minPrice, [FromQuery] decimal maxPrice)
     {
-        if (minPrice > maxPrice)
-        {
-            return BadRequest("minPrice cannot be greater than max price");
-        }
 
-        var result = _db.Orders.Include(o => o.Products).Where(o=>o.TotalPrice >= minPrice && o.TotalPrice <= maxPrice).ToList();
+        var result = await _orderService.GetByPriceRangeAsync(minPrice, maxPrice);
         return Ok(result);
     }
 
     // 创建新的endpoint GetPaginatedOrders, 传入pageNumber和pageSize, 用Skip和Take分页
     [HttpGet("orders")]  
-    public ActionResult<IEnumerable<Order>> GetAllOrders([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders([FromQuery] int pageNumber, [FromQuery] int pageSize)
     {
-        if (pageNumber < 1 || pageSize < 1)
-        {
-            return BadRequest("pageNumber and pageSize must be at least 1.");
-        }
 
-        var orders = _db.Orders.Include(o => o.Products).OrderBy(o=>o.OrderId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var orders = await _orderService.GetPagedAsync(pageNumber, pageSize);
         return Ok(orders);
     }
     [HttpGet("orders/paint/{paintId}")]
-    public ActionResult<IEnumerable<Order>> GetOrdersByPaintId (int paintId)
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByPaintId (int paintId)
     {
-        var orders = _db.Orders.Include(o => o.Products).Where(o => o.Products.Any(p=>p.Id == paintId)).ToList();
-        return orders.Count == 0 ? NotFound(): Ok(orders);
+        var orders = await _orderService.GetByPaintIdAsync(paintId);
+        return Ok(orders);
     }
 
     [HttpGet("orders/user/{userId}")]     
-    public ActionResult<IEnumerable<Order>> GetOrdersByUserId (int userId)
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByUserId (int userId)
     {
-        var orders = _db.Orders.Include(o => o.Products).Where(o=>o.UserId == userId).ToList();
-        return orders.Count == 0 ? NotFound(): Ok(orders);
+        var orders = await _orderService.GetByUserIdAsync(userId);
+        return Ok(orders);
     }   
 
     [HttpGet("orders/last-month")]  
-    public ActionResult<IEnumerable<Order>> GetLastMonthOrders()
+    public async Task<ActionResult<IEnumerable<Order>>> GetLastMonthOrders()
     { 
-        var oneMonthAgo = DateTimeOffset.UtcNow.AddMonths(-1);
 
-        var orders = _db.Orders.Include(o => o.Products)
-            .Where(o => o.CreatedAt >= oneMonthAgo)
-            .ToList();
+
+        var orders = await _orderService.GetLastMonthAsync();
 
         return Ok(orders);
     }
     [HttpGet("orders/date/{date}")]
-    public ActionResult<IEnumerable<Order>> GetOrdersByDate(DateTime date)
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByDate(DateTime date)
     {
-        var orders = _db.Orders.Include(o => o.Products)
-            .Where(o => o.CreatedAt.Date == date.Date)
-            .ToList();
+        var orders = await _orderService.GetByDateAsync(date);
 
         return Ok(orders);
     }
@@ -175,13 +139,22 @@ public sealed class PaintProductController: ControllerBase
     }
 
     [HttpGet("paintproducts/paint/{paintId:int}")]
-    public ActionResult<PaintProduct> GetPaintProductsByPaintId (int paintId)
+    public async Task<ActionResult<PaintProduct>> GetPaintProductsByPaintId(int paintId)
     {
-        //using service layer
-        var serviceProducts = _paintProductService.GetPaintProductById(paintId);
-        var products = _db.PaintProducts.FirstOrDefault(p =>p.Id == paintId);
-        return products is null ? NotFound(): Ok(products);
+        _logger.LogInformation("Received request for paint product with id {Id}", paintId);
+
+        if (paintId <= 0)
+        {
+            _logger.LogWarning("Invalid paint product id: {Id}", paintId);
+            return BadRequest("Invalid paint product id");
+        }
+
+        var product = await _paintProductService.GetPaintProductById(paintId);
+        _logger.LogInformation("Returning paint product with id {Id}", paintId);
+        return Ok(product);
+
     }
+
 
 
 

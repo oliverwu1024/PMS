@@ -5,7 +5,7 @@ using PaintStore.API.Repos;
 
 namespace PaintStore.API.Services;
 
-public class PaintProductService
+public class PaintProductService: IPaintProductService
 {
 
     public readonly PaintProductRepository _paintProductRepository;
