@@ -5,10 +5,27 @@ using PaintStore.API.Services;
 using PaintStore.API.Repos;
 using Microsoft.AspNetCore.Mvc;
 using PaintStore.API.Middleware;
+using Serilog;
+using Serilog.Events;
+
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+/*
+builder.Logging.ClearProviders(); // remove the default providers
+builder.Logging.AddConsole();     // write to the terminal
+builder.Logging.AddDebug();       // write to the debugger's output window
+*/
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+builder.Host.UseSerilog();
+
 
 // Add services to the container.
 
@@ -28,8 +45,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddScoped<PaintProductService /*, PaintProductMockService*/>();
-builder.Services.AddScoped<PaintProductRepository>();
+builder.Services.AddScoped<IPaintProductService, /*PaintProductMockService*/PaintProductService>();
+builder.Services.AddScoped<IPaintProductRepository, PaintProductRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+
 builder.Services.AddSingleton<ExceptionHandlingService>();
 /*
 var controller = new Controller(service);

@@ -19,6 +19,7 @@ public class ExceptionHandlingService
         if (exceptionHandlerFeature is null) return;
 
         var exception = exceptionHandlerFeature.Error;
+        _logger.LogError(exception, "Unhandled exception occurred.");
         var statusCode = GetStatusCode(exception);
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode; //GetStatusCode(exception);

@@ -1,15 +1,7 @@
-using System.Collections.Concurrent;
-using System.Data.Common;
-using System.Drawing;
-using System.Runtime.Versioning;
+
 using Microsoft.AspNetCore.Mvc;
-using PaintStore.Models.Enums;
 using PaintStore.Models.Methods;
 using PaintStore.API.Dtos;
-using Microsoft.AspNetCore.Http.HttpResults;
-using System.Reflection.Metadata;
-using PaintStore.API.Data;
-using Microsoft.EntityFrameworkCore;
 using PaintStore.API.Services;
 
 namespace PaintStore.API.Controllers;
@@ -18,23 +10,30 @@ namespace PaintStore.API.Controllers;
 [Route("api/[controller]")]
 public sealed class PaintProductController: ControllerBase 
 { 
-    private readonly AppDbContext _db;
 
-    private readonly PaintProductService _paintProductService; 
 
-    public PaintProductController(PaintProductService paintProductService) {
-        //_db=db;
+    private readonly IPaintProductService _paintProductService;
+    private readonly ILogger<PaintProductController> _logger; 
+
+    private readonly IOrderService _orderService;
+
+    private readonly IUserService _userService;
+
+    public PaintProductController(IPaintProductService paintProductService, ILogger<PaintProductController> logger, IOrderService orderService, IUserService userService) {
+
         _paintProductService = paintProductService;
-       // _paintProductService = new PaintProductService();
-        //_paintProductService = paintProductService;
+        _logger = logger;
+        _orderService = orderService;
+        _userService = userService;
     }
 
 
     //创建一个API接口Endpoint, 获取所有PaintProduct (无数据， 从MOCK数据拿)
     [HttpGet("all")]
-    public ActionResult<IEnumerable<PaintProduct>> GetAll()
+    public async Task<ActionResult<IEnumerable<PaintProductDto>>> GetAll()
     {
-        return _db.PaintProducts.OrderBy((product=>product.Id)).ToList();
+        var products = await _paintProductService.GetAllAsync();
+        return Ok(products.Select(p => p.ToDto())); 
     }
 
     //创建一个API接口Endpoint, 获取所有Orders (无数据，从内存拿)
@@ -47,151 +46,98 @@ public sealed class PaintProductController: ControllerBase
     */
 
     [HttpGet("orders/order/{id:int}")]
-    public ActionResult<Order> GetOrderById(int id)
+    public async Task<ActionResult<OrderDto>> GetOrderById(int id)
     {
-        var order = _db.Orders.Include(o => o.Products).FirstOrDefault(o=>o.OrderId ==id);
-        return order is null ? NotFound(): Ok(order);
+        var order = await _orderService.GetByIdAsync(id);
+        return Ok(order.ToDto());
     }
 
     // 创建新的CreateOrder接口, 传入参数, 返回201
     [HttpPost("orders")]
-    public ActionResult<Order> CreateOrder([FromBody] CreateOrderRequest request)
+    public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderRequest request)
     {
-        if (request.ProductIds.Count == 0 || request.ProductIds.Count != request.Quantities.Count)
-        {
-            return BadRequest("ProductIds and Quantities must be non-empty and the same length.");
-        }
-
-        var products = new List<PaintProduct>();
-        foreach (var productId in request.ProductIds)
-        {
-            var product = _db.PaintProducts.FirstOrDefault(p=>p.Id == productId);
-            if (product is null) {
-                return NotFound($"Product {productId} not found");
-            }
-            products.Add(product);
-        }
-
-        using var tx = _db.Database.BeginTransaction();
-        try 
-        {
-            var order = new Order(0, request.UserId, products, request.Quantities, new OrderHistory());
-	
-            _db.Orders.Add(order);
-            _db.SaveChanges();
-            tx.Commit();
-            // 201 Created + Location header pointing to get orders/{id}
-            return CreatedAtAction(nameof(GetOrderById), new {id =order.OrderId}, order);
-        }
-        catch
-        {
-            tx.Rollback();
-            throw;
-        }
+        var order = await _orderService.CreateOrderAsync(request);
+        return CreatedAtAction(nameof(GetOrderById), new {id = order.OrderId}, order.ToDto());
 
     }
 
     // 创建新的Endpoint FilterOrders, 传入MaxPrice和MinPrice, 筛选总价在两者之间的订单
     [HttpGet("orders/filter")]
-    public ActionResult<IEnumerable<Order>> GetOrdersByPriceRange([FromQuery] decimal minPrice, [FromQuery] decimal maxPrice)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByPriceRange([FromQuery] decimal minPrice, [FromQuery] decimal maxPrice)
     {
-        if (minPrice > maxPrice)
-        {
-            return BadRequest("minPrice cannot be greater than max price");
-        }
 
-        var result = _db.Orders.Include(o => o.Products).Where(o=>o.TotalPrice >= minPrice && o.TotalPrice <= maxPrice).ToList();
-        return Ok(result);
+        var result = await _orderService.GetByPriceRangeAsync(minPrice, maxPrice);
+        return Ok(result.Select(o => o.ToDto()));
     }
 
     // 创建新的endpoint GetPaginatedOrders, 传入pageNumber和pageSize, 用Skip和Take分页
     [HttpGet("orders")]  
-    public ActionResult<IEnumerable<Order>> GetAllOrders([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders([FromQuery] int pageNumber, [FromQuery] int pageSize)
     {
-        if (pageNumber < 1 || pageSize < 1)
-        {
-            return BadRequest("pageNumber and pageSize must be at least 1.");
-        }
 
-        var orders = _db.Orders.Include(o => o.Products).OrderBy(o=>o.OrderId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        return Ok(orders);
+        var orders = await _orderService.GetPagedAsync(pageNumber, pageSize);
+        return Ok(orders.Select(o=>o.ToDto()));
     }
     [HttpGet("orders/paint/{paintId}")]
-    public ActionResult<IEnumerable<Order>> GetOrdersByPaintId (int paintId)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByPaintId (int paintId)
     {
-        var orders = _db.Orders.Include(o => o.Products).Where(o => o.Products.Any(p=>p.Id == paintId)).ToList();
-        return orders.Count == 0 ? NotFound(): Ok(orders);
+        var orders = await _orderService.GetByPaintIdAsync(paintId);
+        return Ok(orders.Select(o=>o.ToDto()));
     }
 
     [HttpGet("orders/user/{userId}")]     
-    public ActionResult<IEnumerable<Order>> GetOrdersByUserId (int userId)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByUserId (int userId)
     {
-        var orders = _db.Orders.Include(o => o.Products).Where(o=>o.UserId == userId).ToList();
-        return orders.Count == 0 ? NotFound(): Ok(orders);
+        var orders = await _orderService.GetByUserIdAsync(userId);
+        return Ok(orders.Select(o => o.ToDto()));
     }   
 
     [HttpGet("orders/last-month")]  
-    public ActionResult<IEnumerable<Order>> GetLastMonthOrders()
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetLastMonthOrders()
     { 
-        var oneMonthAgo = DateTimeOffset.UtcNow.AddMonths(-1);
 
-        var orders = _db.Orders.Include(o => o.Products)
-            .Where(o => o.CreatedAt >= oneMonthAgo)
-            .ToList();
 
-        return Ok(orders);
+        var orders = await _orderService.GetLastMonthAsync();
+
+        return Ok(orders.Select(o => o.ToDto()));
     }
     [HttpGet("orders/date/{date}")]
-    public ActionResult<IEnumerable<Order>> GetOrdersByDate(DateTime date)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrdersByDate(DateTime date)
     {
-        var orders = _db.Orders.Include(o => o.Products)
-            .Where(o => o.CreatedAt.Date == date.Date)
-            .ToList();
+        var orders = await _orderService.GetByDateAsync(date);
 
-        return Ok(orders);
+        return Ok(orders.Select(o => o.ToDto()));
     }
 
     [HttpGet("paintproducts")]  
-    public ActionResult<IEnumerable<PaintProduct>> GetAllPaintProducts([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<PaintProductDto>>> GetAllPaintProducts([FromQuery] int pageNumber, [FromQuery] int pageSize)
     {
-        if (pageNumber < 1 || pageSize < 1)
-        {
-            return BadRequest("pageNumber and pageSize must be at least 1.");
-        }
-
-        var products = _db.PaintProducts.OrderBy(p=>p.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        return Ok(products);
+        var products =  await _paintProductService.GetPagedAsync(pageNumber, pageSize);
+        return Ok(products.Select(p => p.ToDto()));
     }
     [HttpGet("paintproducts/filter")]
-    public ActionResult<IEnumerable<PaintProduct>> GetPaintProductsByPriceRange([FromQuery] decimal minPrice, [FromQuery] decimal maxPrice)
+    public async Task<ActionResult<IEnumerable<PaintProductDto>>> GetPaintProductsByPriceRange([FromQuery] decimal minPrice, [FromQuery] decimal maxPrice)
     {
-        if (minPrice > maxPrice)
-        {
-            return BadRequest("minPrice cannot be greater than max price");
-        }
-
-        var result = _db.PaintProducts.Where(p=>p.Price >= minPrice && p.Price <= maxPrice).ToList();
-        return Ok(result);
+        var products = await _paintProductService.GetByPriceRangeAsync(minPrice, maxPrice);
+        return Ok(products.Select(p => p.ToDto()));
     }
-
     [HttpGet("paintproducts/paint/{paintId:int}")]
-    public ActionResult<PaintProduct> GetPaintProductsByPaintId (int paintId)
+    public async Task<ActionResult<PaintProductDto>> GetPaintProductsByPaintId(int paintId)
     {
-        //using service layer
-        var serviceProducts = _paintProductService.GetPaintProductById(paintId);
-        var products = _db.PaintProducts.FirstOrDefault(p =>p.Id == paintId);
-        return products is null ? NotFound(): Ok(products);
+        var products =await _paintProductService.GetPaintProductById(paintId);
+        return Ok(products.ToDto());
+
     }
+
 
 
 
 
     [HttpGet("paintproducts/user/{userId}")]     
-    public ActionResult<IEnumerable<PaintProduct>> GetPaintProductsByUserId (int userId)
+    public async Task<ActionResult<IEnumerable<PaintProductDto>>> GetPaintProductsByUserId (int userId)
     {
-        var products = 	_db.Orders.Include(o => o.Products).Where(o => o.UserId == userId).SelectMany(o => o.Products).DistinctBy(p => p.Id).ToList();
-
-        return products.Count == 0 ? NotFound(): Ok(products);
+        var products = await _paintProductService.GetByUserIdAsync(userId);
+        return Ok(products.Select(p => p.ToDto()));  
     }  
 
 
@@ -199,34 +145,35 @@ public sealed class PaintProductController: ControllerBase
 
 
     [HttpGet("users")]  
-    public ActionResult<IEnumerable<User>> GetUsers([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers([FromQuery] int pageNumber, [FromQuery] int pageSize)
     {
-        if (pageNumber < 1 || pageSize < 1)
-        {
-            return BadRequest("pageNumber and pageSize must be at least 1.");
-        }
 
-        var users = _db.Users.OrderBy(u=>u.UserId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        return Ok(users);
+
+        var users = await _userService.GetPagedAsync(pageNumber, pageSize);
+        return Ok(users.Select(u => u.ToDto()));
     }
+
+
     [HttpGet("users/user/{userId:int}")]
-    public ActionResult<User> GetUserById (int userId)
+    public async Task<ActionResult<UserDTO>> GetUserById (int userId)
     {
-        var user =  _db.Users.FirstOrDefault(u =>u.UserId ==userId);
-        return user is null ? NotFound(): Ok(user);
+        var user =  await _userService.GetByIdAsync(userId);
+        return Ok(user.ToDto());
     }
+
+
     [HttpGet("users/username/{userName}")]
-    public ActionResult<IEnumerable<User>> GetUserByName (string userName)
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetUserByName (string userName)
     {
-        var users =  _db.Users.Where(u =>u.UserName ==userName).ToList();
-        return users.Count == 0 ? NotFound(): Ok(users);
+        var users =  await _userService.GetByNameAsync(userName);
+        return Ok(users.Select(u => u.ToDto()));
     }
 
     [HttpGet("users/usermail/{userMail}")]
-    public ActionResult<IEnumerable<User>> GetUserByEmail (string userMail)
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetUserByEmail (string userMail)
     {
-        var users =  _db.Users.Where(u =>u.UserEmail ==userMail).ToList();
-        return users.Count == 0 ? NotFound(): Ok(users);
+        var users = await _userService.GetByEmailAsync(userMail);
+        return Ok(users.Select(u => u.ToDto()));
     }
 
 }
