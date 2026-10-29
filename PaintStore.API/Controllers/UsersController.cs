@@ -27,12 +27,8 @@ public class UsersController : ControllerBase
 
         var user = await _userService.CreateAsync(request);
 
-        return Ok(new UserDTO
-        {
-            UserId = user.UserId,
-            UserName = user.UserName,
-            UserEmail = user.UserEmail
-        });
+        return Ok(user.ToDto());
+
     }
 
     [HttpGet("{id}")]
@@ -42,14 +38,9 @@ public class UsersController : ControllerBase
         var user = await _userService.GetByIdAsync(id);
 
         //将user转换为UserDTO并返回
-        var userDto = new UserDTO 
-        {
-            UserId = user.UserId,
-            UserName= user.UserName,
-            UserEmail = user.UserEmail
-        };
 
-        return Ok(userDto);
+        return Ok(user.ToDto());
+
 
 
 
