@@ -9,10 +9,10 @@ public class OrderService: IOrderService
 
     private readonly ILogger<OrderService> _logger;
 
-    private readonly PaintProductRepository _paintProductRepository;
+    private readonly IPaintProductRepository _paintProductRepository;
 
 
-    public OrderService(IOrderRepository orderRepository, ILogger<OrderService> logger, PaintProductRepository paintProductRepository)
+    public OrderService(IOrderRepository orderRepository, ILogger<OrderService> logger, IPaintProductRepository paintProductRepository)
     {
         _orderRepository = orderRepository;   
         _logger = logger;  // Injected logger for logging

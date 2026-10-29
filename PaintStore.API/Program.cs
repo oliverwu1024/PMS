@@ -46,7 +46,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 builder.Services.AddScoped<IPaintProductService, /*PaintProductMockService*/PaintProductService>();
-builder.Services.AddScoped<PaintProductRepository>();
+builder.Services.AddScoped<IPaintProductRepository, PaintProductRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
