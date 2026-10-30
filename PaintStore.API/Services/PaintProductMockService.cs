@@ -1,5 +1,7 @@
 using PaintStore.Models.Enums;
 using PaintStore.Models.Methods;
+using PaintStore.API.Dtos;
+
 
 namespace PaintStore.API.Services;
 
@@ -40,6 +42,15 @@ public class PaintProductMockService : IPaintProductService
         throw new NotImplementedException();
 
     }
+
+    public Task<PaintProduct> CreateAsync(PaintProductRequest request) => throw new NotImplementedException();
+
+    public Task<PaintProduct> UpdateAsync(int id, PaintProductRequest request) => throw new NotImplementedException();
+
+    public Task DeleteAsync(int id) => throw new NotImplementedException();
+
+    public Task<List<PaintProduct>> SearchAsync(PaintProductSearchQuery query) => throw new NotImplementedException();
+
 }
 
 

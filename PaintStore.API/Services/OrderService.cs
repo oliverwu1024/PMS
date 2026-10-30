@@ -99,14 +99,23 @@ public class OrderService: IOrderService
 
     public async Task<Order> CreateOrderAsync (CreateOrderRequest request)
     {
-        if (request.ProductIds.Count == 0 || request.ProductIds.Count != request.Quantities.Count)
+        var products = await LoadProductsAsync(request.ProductIds, request.Quantities);
+        var order = new Order(0, request.UserId, products, request.Quantities, new OrderHistory());
+        order = await _orderRepository.AddAsync(order);
+        _logger.LogInformation("Order {OrderId} created for user {UserId}", order.OrderId, request.UserId);
+        return order;
+
+    }
+
+    private async Task<List<PaintProduct>> LoadProductsAsync (List<int> productids, List<int> quantities)
+    {
+        if (productids.Count == 0 || productids.Count != quantities.Count)
         {
-            _logger.LogWarning("Invalid order request for user {UserId}", request.UserId);
             throw new ArgumentException("ProductIds and Quantities must be non-empty and the same length.");
         }
 
         var products = new List<PaintProduct>();
-        foreach (var productId in request.ProductIds)
+        foreach (var productId in productids)
         {
             var product = await _paintProductRepository.GetPaintProductById(productId);
             if (product is null) {
@@ -115,12 +124,32 @@ public class OrderService: IOrderService
             }
             products.Add(product);
 
-        }
-        var order = new Order(0, request.UserId, products, request.Quantities, new OrderHistory());
-        order = await _orderRepository.AddAsync(order);
-        _logger.LogInformation("Order {OrderId} created for user {UserId}", order.OrderId, request.UserId);
-        return order;
+        }    
 
+        return products;
     }
+    public async Task<Order> UpdateOrderAsync (int id, UpdateOrderRequest request)
+    {
+        var order = await GetByIdAsync(id);   // 404 if missing
+        var products = await LoadProductsAsync(request.ProductIds, request.Quantities);
+
+        order.Products.Clear();
+        order.Products.AddRange(products);
+        order.Quantities = new List<int>(request.Quantities);
+        order.TotalPrice = order.GetTotalOrderPrice();
+
+        await _orderRepository.UpdateAsync(order);
+        _logger.LogInformation("Order {OrderId} updated", id);
+        return order;
+    }
+
+    public async Task DeleteOrderAsync (int id)
+    {
+        var order = await GetByIdAsync(id);
+
+        await _orderRepository.DeleteAsync(order);
+        _logger.LogInformation("Order {OrderId} deleted", id);
+    }
+
 
 }

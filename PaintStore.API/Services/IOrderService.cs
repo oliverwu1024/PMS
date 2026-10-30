@@ -19,4 +19,9 @@ public interface IOrderService
     Task<List<Order>> GetLastMonthAsync ();
 
     Task<Order> CreateOrderAsync (CreateOrderRequest request);
+
+    Task<Order> UpdateOrderAsync (int id, UpdateOrderRequest request);
+
+    Task DeleteOrderAsync (int id);
+
 }
