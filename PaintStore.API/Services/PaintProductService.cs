@@ -1,6 +1,8 @@
 using PaintStore.Models.Methods;
 using PaintStore.API.Data;
 using PaintStore.API.Repos;
+using PaintStore.API.Dtos;
+
 
 
 namespace PaintStore.API.Services;
@@ -87,8 +89,67 @@ public class PaintProductService: IPaintProductService
         return products;
     }
 
+    private async Task EnsureSeriesExistsAsync(int seriesId)
+    {
+        if (!await _paintProductRepository.SeriesExistsAsync(seriesId))
+        {
+            _logger.LogWarning("Series {SeriesId} not found", seriesId);
+            throw new ArgumentException($"Series {seriesId} does not exist.");
+        }
+    }
+
+    public async Task<PaintProduct> CreateAsync(PaintProductRequest request)
+    {
+        await EnsureSeriesExistsAsync(request.SeriesId);
+
+        var spec = new PaintSpecification(request.Color, request.SizeInLiters);
+        var product = new PaintProduct(0, request.BrandName, request.Name, request.Type, spec, request.Price)
+        {
+            SeriesId = request.SeriesId
+        };
+
+        product = await _paintProductRepository.AddAsync(product);
+        _logger.LogInformation("Paint product {Id} created", product.Id);
+        return product;
+    }
+
+    public async Task<PaintProduct> UpdateAsync(int id, PaintProductRequest request)
+    {
+        var product = await GetPaintProductById(id);   // 404 if missing
+        await EnsureSeriesExistsAsync(request.SeriesId);
+
+        product.Name = request.Name;
+        product.BrandName = request.BrandName;
+        product.Type = request.Type;
+        product.Price = request.Price;
+        product.SeriesId = request.SeriesId;
+        product.Specification.Color = request.Color;
+        product.Specification.SizeInLiters = request.SizeInLiters;
+
+        await _paintProductRepository.UpdateAsync(product);
+        _logger.LogInformation("Paint product {Id} updated", id);
+        return product;
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var product = await GetPaintProductById(id);
+
+        await _paintProductRepository.DeleteAsync(product);
+        _logger.LogInformation("Paint product {Id} deleted", id);
+    }
 
 
+    public async Task<List<PaintProduct>> SearchAsync(PaintProductSearchQuery query)
+    {
+        if (query.MinPrice > query.MaxPrice)
+        {
+            _logger.LogWarning("Invalid price range: min {MinPrice}, max {MaxPrice}", query.MinPrice, query.MaxPrice);
+            throw new ArgumentException("Minimum price cannot be greater than maximum price.");
+        }
+
+        return await _paintProductRepository.SearchAsync(query);
+    }
 
 
 

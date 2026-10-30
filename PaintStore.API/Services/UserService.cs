@@ -78,4 +78,30 @@ public class UserService: IUserService
         return user;
     }
 
+
+    public async Task<User> UpdateAsync (int id, UserUpdateRequest request)
+    {
+        var user = await GetByIdAsync(id);
+
+        user.UserName = request.UserName;
+        user.UserEmail = request.UserEmail;
+        user.UserPhone = request.UserPhone;
+        user.Age= request.Age;
+
+        await _userRepository.UpdateAsync(user);
+        _logger.LogInformation("User {UserId} updated", id);
+        return user;
+    }
+
+    public async Task DeleteAsync (int id)
+    {
+        var user = await GetByIdAsync(id);
+
+        await _userRepository.DeleteAsync(user);
+
+        _logger.LogInformation("User {UserId} deleted", id);
+    }
+
+
+
 }

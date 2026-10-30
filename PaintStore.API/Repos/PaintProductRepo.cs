@@ -1,5 +1,6 @@
 using PaintStore.Models.Methods;
 using PaintStore.API.Data;
+using PaintStore.API.Dtos;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -45,6 +46,58 @@ public class PaintProductRepository: IPaintProductRepository
 
         return products;
     }
+
+
+    public async Task<PaintProduct> AddAsync(PaintProduct product)
+    {
+        _context.PaintProducts.Add(product);
+        await _context.SaveChangesAsync();
+        return product;
+    }
+
+    public async Task UpdateAsync(PaintProduct product)
+    {
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(PaintProduct product)
+    {
+        _context.PaintProducts.Remove(product);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> SeriesExistsAsync(int seriesId)
+    {
+        return await _context.PaintSeries.AnyAsync(s => s.Id == seriesId);
+    }
+
+
+    public async Task<List<PaintProduct>> SearchAsync(PaintProductSearchQuery query)
+    {
+        IQueryable<PaintProduct> products = _context.PaintProducts;
+
+        if (!string.IsNullOrWhiteSpace(query.Name))
+            products = products.Where(p => p.Name.Contains(query.Name));
+
+        if (query.Brand.HasValue)
+            products = products.Where(p => p.BrandName == query.Brand.Value);
+
+        if (query.Type.HasValue)
+            products = products.Where(p => p.Type == query.Type.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.Color))
+            products = products.Where(p => p.Specification.Color == query.Color);
+
+        if (query.MinPrice.HasValue)
+            products = products.Where(p => p.Price >= query.MinPrice.Value);
+
+        if (query.MaxPrice.HasValue)
+            products = products.Where(p => p.Price <= query.MaxPrice.Value);
+
+        return await products.OrderBy(p => p.Id).ToListAsync();
+    }
+
+
 
     
 }

@@ -12,5 +12,9 @@ public interface IUserService
 
     Task<List<User>> GetByEmailAsync (string email);
 
-    Task<User> CreateAsync(UserCreateRequest request);
+    Task<User> CreateAsync (UserCreateRequest request);
+
+    Task<User> UpdateAsync (int id, UserUpdateRequest request);
+
+    Task DeleteAsync (int id);
 }

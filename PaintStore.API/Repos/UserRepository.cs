@@ -43,6 +43,20 @@ public class UserRepository: IUserRepository
         return user;                      
 
     }
+
+    public async Task UpdateAsync (User user)
+    {
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync (User user)
+    {
+        _context.Users.Remove(user); 
+        await _context.SaveChangesAsync();
+    }
+
+
+
 }
 
 
