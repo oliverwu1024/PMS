@@ -41,7 +41,7 @@ public sealed class PaintProductsController: ControllerBase
 
 
     [HttpGet]  
-    public async Task<ActionResult<IEnumerable<PaintProductDto>>> GetAllPaintProducts([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<PaintProductDto>>> GetAllPaintProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var products =  await _paintProductService.GetPagedAsync(pageNumber, pageSize);
         return Ok(products.Select(p => p.ToDto()));

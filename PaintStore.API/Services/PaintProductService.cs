@@ -103,9 +103,10 @@ public class PaintProductService: IPaintProductService
         await EnsureSeriesExistsAsync(request.SeriesId);
 
         var spec = new PaintSpecification(request.Color, request.SizeInLiters);
-        var product = new PaintProduct(0, request.BrandName, request.Name, request.Type, spec, request.Price)
+        var product = new PaintProduct(0, request.BrandName!.Value, request.Name, request.Type, spec, request.Price)
         {
-            SeriesId = request.SeriesId
+            SeriesId = request.SeriesId,
+            Stock = request.Stock
         };
 
         product = await _paintProductRepository.AddAsync(product);
@@ -119,12 +120,13 @@ public class PaintProductService: IPaintProductService
         await EnsureSeriesExistsAsync(request.SeriesId);
 
         product.Name = request.Name;
-        product.BrandName = request.BrandName;
+        product.BrandName = request.BrandName!.Value;
         product.Type = request.Type;
         product.Price = request.Price;
         product.SeriesId = request.SeriesId;
         product.Specification.Color = request.Color;
         product.Specification.SizeInLiters = request.SizeInLiters;
+        product.Stock = request.Stock;
 
         await _paintProductRepository.UpdateAsync(product);
         _logger.LogInformation("Paint product {Id} updated", id);
