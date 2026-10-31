@@ -10,7 +10,9 @@ public class PaintProductRequest
     [StringLength(50)]
     public string Name {get;set;}
 
-    public Brand BrandName {get;set;}
+    [Required]
+    [EnumDataType(typeof(Brand))]
+    public Brand? BrandName {get;set;}
 
     public PaintType Type {get;set;}
 
@@ -22,6 +24,9 @@ public class PaintProductRequest
 
     [Range(0.01, 100000)]
     public decimal Price {get;set;}
+
+    [Range(0, int.MaxValue)]
+    public int Stock {get; set;}
 
     public int SeriesId {get;set;}
 

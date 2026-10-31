@@ -64,8 +64,8 @@ public class DbInitializer
             var exterior = context.PaintSeries.First(s => s.Name == "Exterior");
 
             context.PaintProducts.AddRange(
-                new PaintProduct(0, Brand.Dulux, "白色乳胶漆", PaintType.BaseCoat, new PaintSpecification("White", 15), 25.5m) { Series = wash },
-                new PaintProduct(0, Brand.Haymes, "蓝色油漆", PaintType.Glossy, new PaintSpecification("Blue", 8), 30.0m) { Series = exterior }                
+                new PaintProduct(0, Brand.Dulux, "白色乳胶漆", PaintType.BaseCoat, new PaintSpecification("White", 15), 25.5m) { Series = wash, Stock = 50 },
+                new PaintProduct(0, Brand.Haymes, "蓝色油漆", PaintType.Glossy, new PaintSpecification("Blue", 8), 30.0m) { Series = exterior, Stock = 50 }                
             );
 
             context.SaveChanges();  //save changes to database

@@ -28,6 +28,8 @@ public class PaintProduct: IBuyable
 
     public decimal Price {get;set;}
 
+    public int Stock {get; set;}
+
     public int SeriesId {get;set;}
 
     public PaintSeries Series {get;set;}
@@ -65,7 +67,6 @@ public class PaintProduct: IBuyable
         else {return DefaultDiscount;}
         
     }
-
 
 
 

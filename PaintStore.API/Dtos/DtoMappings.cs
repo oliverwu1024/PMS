@@ -16,7 +16,8 @@ public static class DtoMappings
             Type = product.Type.ToString(),
             Color = product.Specification.Color,
             SizeInLiters = product.Specification.SizeInLiters,
-            Price = product.Price
+            Price = product.Price,
+            Stock = product.Stock
         };
     }
 
