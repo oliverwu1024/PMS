@@ -43,7 +43,7 @@ public class OrdersController : ControllerBase
 
     // 创建新的endpoint GetPaginatedOrders, 传入pageNumber和pageSize, 用Skip和Take分页
     [HttpGet]  
-    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders([FromQuery] int pageNumber, [FromQuery] int pageSize)
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
 
         var orders = await _orderService.GetPagedAsync(pageNumber, pageSize);
