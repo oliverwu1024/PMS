@@ -1,6 +1,10 @@
 using PaintStore.API.Repos;
 using PaintStore.Models.Methods;
 using PaintStore.API.Dtos;
+using Microsoft.Extensions.Options;
+using PaintStore.API.Options;
+
+
 namespace PaintStore.API.Services;
 
 public class OrderService: IOrderService
@@ -11,13 +15,32 @@ public class OrderService: IOrderService
 
     private readonly IPaintProductRepository _paintProductRepository;
 
+    private readonly IUserRepository _userRepository;
 
-    public OrderService(IOrderRepository orderRepository, ILogger<OrderService> logger, IPaintProductRepository paintProductRepository)
+    private readonly DiscountRuleOptions _discountRule;
+
+
+    public OrderService(IOrderRepository orderRepository, ILogger<OrderService> logger, 
+    IPaintProductRepository paintProductRepository, IUserRepository userRepository,IOptions<DiscountRuleOptions> discountRuleOptions)
     {
         _orderRepository = orderRepository;   
         _logger = logger;  // Injected logger for logging
         _paintProductRepository = paintProductRepository;
+        _userRepository = userRepository;
+        _discountRule = discountRuleOptions.Value;
     } 
+
+    private decimal ApplyDiscount(decimal total)
+    {
+        if (total > _discountRule.DiscountThreshold)
+        {
+            return Math.Round(total * (1 - _discountRule.DiscountPercentage / 100m), 2);
+        }
+        return total;
+    }
+
+
+
 
     public async Task<Order> GetByIdAsync(int id) {
         var order = await _orderRepository.GetByIdAsync(id);
@@ -99,8 +122,32 @@ public class OrderService: IOrderService
 
     public async Task<Order> CreateOrderAsync (CreateOrderRequest request)
     {
+        var user = await _userRepository.GetByIdAsync(request.UserId);
+        if (user is null)
+        {
+            _logger.LogWarning("User {UserId} not found", request.UserId);
+            throw new KeyNotFoundException($"User {request.UserId} not found");
+        }
+
+
         var products = await LoadProductsAsync(request.ProductIds, request.Quantities);
+
+        for (int i = 0; i < products.Count; i++)
+        {
+            if (products[i].Stock < request.Quantities[i])
+                throw new ArgumentException($"Not enough stock for product {products[i].Id}");
+        }
+        for (int i = 0; i < products.Count; i++)
+        {
+            products[i].Stock -= request.Quantities[i];
+        }
+
+
+
+
         var order = new Order(0, request.UserId, products, request.Quantities, new OrderHistory());
+        order.TotalPrice = ApplyDiscount(order.TotalPrice);
+
         order = await _orderRepository.AddAsync(order);
         _logger.LogInformation("Order {OrderId} created for user {UserId}", order.OrderId, request.UserId);
         return order;
@@ -113,6 +160,16 @@ public class OrderService: IOrderService
         {
             throw new ArgumentException("ProductIds and Quantities must be non-empty and the same length.");
         }
+
+        if (quantities.Any(q => q<= 0))
+        {
+            throw new ArgumentException("Each quantity must be greater than 0");
+        }
+        if (productids.Distinct().Count() != productids.Count)
+        {
+            throw new ArgumentException("Each product can only appear once; combine quantities instead.");
+        }
+
 
         var products = new List<PaintProduct>();
         foreach (var productId in productids)
@@ -136,7 +193,9 @@ public class OrderService: IOrderService
         order.Products.Clear();
         order.Products.AddRange(products);
         order.Quantities = new List<int>(request.Quantities);
-        order.TotalPrice = order.GetTotalOrderPrice();
+        order.TotalPrice = ApplyDiscount(order.GetTotalOrderPrice());
+
+
 
         await _orderRepository.UpdateAsync(order);
         _logger.LogInformation("Order {OrderId} updated", id);

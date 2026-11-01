@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using PaintStore.API.Middleware;
 using Serilog;
 using Serilog.Events;
+using PaintStore.API.Options;
+
 
 
 
@@ -51,6 +53,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.Configure<DiscountRuleOptions>(builder.Configuration.GetSection("DiscountRule"));
+
 
 
 builder.Services.AddSingleton<ExceptionHandlingService>();
@@ -91,7 +95,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 */
-DbInitializer.Initialize(app.Services);
+await DbInitializer.InitializeAsync(app.Services);
 
 
 
