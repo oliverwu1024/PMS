@@ -38,9 +38,9 @@ public static class DtoMappings
     {
         return new UserDTO
         {
-            UserId = user.UserId,
+            UserId = user.Id,
             UserName = user.UserName,
-            UserEmail = user.UserEmail
+            UserEmail = user.Email
         };
     }
 }

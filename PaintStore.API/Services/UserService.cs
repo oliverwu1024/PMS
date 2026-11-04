@@ -74,7 +74,7 @@ public class UserService: IUserService
 
         var user = new User(request.UserName, request.UserEmail, request.UserPhone, request.Age, userId: 0);
         user = await _userRepository.AddAsync(user);
-        _logger.LogInformation("User {UserId} created", user.UserId);
+        _logger.LogInformation("User {UserId} created", user.Id);
         return user;
     }
 
@@ -84,8 +84,8 @@ public class UserService: IUserService
         var user = await GetByIdAsync(id);
 
         user.UserName = request.UserName;
-        user.UserEmail = request.UserEmail;
-        user.UserPhone = request.UserPhone;
+        user.Email = request.UserEmail;
+        user.PhoneNumber = request.UserPhone;
         user.Age= request.Age;
 
         await _userRepository.UpdateAsync(user);
