@@ -18,12 +18,12 @@ public class UserRepository: IUserRepository
 
     public async Task<List<User>> GetPagedAsync(int pageNumber, int pageSize)
     {
-        return await _context.Users.OrderBy(u=>u.UserId).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+        return await _context.Users.OrderBy(u=>u.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
     }
 
     public async Task<User?> GetByIdAsync (int id)
     {
-        return await _context.Users.FirstOrDefaultAsync(u =>u.UserId ==id);
+        return await _context.Users.FirstOrDefaultAsync(u =>u.Id ==id);
     }
 
     public async Task<List<User>> GetByNameAsync (string userName)
@@ -33,7 +33,7 @@ public class UserRepository: IUserRepository
 
     public async Task<List<User>> GetByEmailAsync (string email)
     {
-        return await _context.Users.Where(u =>u.UserEmail ==email).ToListAsync();
+        return await _context.Users.Where(u =>u.Email ==email).ToListAsync();
     }
 
     public async Task<User> AddAsync (User user)

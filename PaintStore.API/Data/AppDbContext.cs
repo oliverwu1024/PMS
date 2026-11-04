@@ -2,10 +2,12 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using PaintStore.Models.Methods;
 using PaintStore.Models.Enums;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace PaintStore.API.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
@@ -14,7 +16,6 @@ namespace PaintStore.API.Data
 
         public DbSet<PaintProduct> PaintProducts { get; set; }
 
-        public DbSet<User> Users {get; set;}
 
         public DbSet<Order> Orders {get; set;}
 
@@ -24,6 +25,8 @@ namespace PaintStore.API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<PaintProduct>()
                 .Property(p => p.Price)
                 .HasPrecision(18, 2);
@@ -57,7 +60,7 @@ namespace PaintStore.API.Data
             // extra constraints
             modelBuilder.Entity<PaintBrand>().Property(b => b.Name).IsRequired().HasMaxLength(50);
             modelBuilder.Entity<PaintSeries>().Property(s => s.Name).IsRequired().HasMaxLength(50);
-            modelBuilder.Entity<User>().HasIndex(u => u.UserEmail).IsUnique();
+            modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
             modelBuilder.Entity<PaintProduct>().OwnsOne(p => p.Specification);
 
 

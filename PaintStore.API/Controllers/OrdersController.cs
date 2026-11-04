@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Mvc;
 using PaintStore.API.Dtos;
 using PaintStore.API.Services;
 using PaintStore.Models.Methods;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace PaintStore.API.Controllers;
 
 [ApiController]
 [Route("api/orders")]
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;

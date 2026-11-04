@@ -27,7 +27,7 @@ public class UsersController : ControllerBase
 
         var user = await _userService.CreateAsync(request);
 
-        return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user.ToDto());
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user.ToDto());
 
 
     }
