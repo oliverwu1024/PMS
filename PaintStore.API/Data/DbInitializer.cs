@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PaintStore.API.Data;
 using PaintStore.Models.Enums;
 using PaintStore.Models.Methods;
+using Microsoft.AspNetCore.Identity;
 
 
 /*
@@ -39,6 +40,10 @@ public class DbInitializer
 
         await dbContext.Database.MigrateAsync();
         await SeedDataAsync(dbContext);
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        await SeedAdminAsync(userManager, roleManager);
+
     }
     
     // this is a method that will be called when the Initialize method is called
@@ -83,6 +88,22 @@ public class DbInitializer
 
     }
 
+    private static async Task SeedAdminAsync(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
+    {
+        // 1. create the "Admin" role if it doesn't exist
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new IdentityRole<int>("Admin"));
+        }
+
+        // 2. create an admin user (with a hashed password) and give them the role
+        if (await userManager.FindByNameAsync("admin") == null)
+        {
+            var admin = new User("admin", "admin@example.com", "0400999999", 30, 0);
+            await userManager.CreateAsync(admin, "Admin123!");
+            await userManager.AddToRoleAsync(admin, "Admin");
+        }
+    }
 
 
 }

@@ -82,7 +82,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminPolicy", policy => policy.RequireClaim("scope", "admin"));
-    options.AddPolicy("UserPolicy", policy => policy.RequireClaim("scope", "user"));
+    options.AddPolicy("UserPolicy", policy => policy.RequireClaim("scope", "user", "admin"));
 });
 
 
