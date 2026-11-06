@@ -58,19 +58,30 @@ public class Order
 
     }
 
-    public void AddProduct(PaintProduct newPaintProduct)
+    // Products and Quantities are parallel lists (Quantities[i] belongs to Products[i]),
+    // so every add/remove has to change both or GetTotalOrderPrice goes out of range
+    public void AddProduct(PaintProduct newPaintProduct, int quantity = 1)
     {
         Products.Add(newPaintProduct);
+        Quantities.Add(quantity);
     }
 
-    public void AddProducts(List<PaintProduct> newPaintProducts)
+    public void AddProducts(List<PaintProduct> newPaintProducts, List<int> quantities)
     {
-        Products.AddRange(newPaintProducts);        
+        if (newPaintProducts.Count != quantities.Count)
+        {
+            throw new ArgumentException("Each product needs exactly one quantity.");
+        }
+        Products.AddRange(newPaintProducts);
+        Quantities.AddRange(quantities);
     }
 
     public void RemoveProduct(PaintProduct removeProduct)
     {
-        Products.Remove(removeProduct);
+        int idx = Products.IndexOf(removeProduct);
+        if (idx == -1) {return;}
+        Products.RemoveAt(idx);
+        Quantities.RemoveAt(idx);
     }
 
     public void ContainsProduct (PaintProduct checkContains)
@@ -156,7 +167,15 @@ public class Order
     // I added an ID in product
     public void RemoveProduct (int productId)
     {
-        Products.RemoveAll(p => p.Id == productId);
+        // go backwards so removing an item doesn't shift the ones we haven't checked yet
+        for (int i = Products.Count - 1; i >= 0; i--)
+        {
+            if (Products[i].Id == productId)
+            {
+                Products.RemoveAt(i);
+                Quantities.RemoveAt(i);
+            }
+        }
     }
 
     // used original price not discounted final price

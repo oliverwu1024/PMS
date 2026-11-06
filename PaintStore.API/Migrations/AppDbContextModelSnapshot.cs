@@ -155,6 +155,21 @@ namespace PaintStore.API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("OrderPaintProduct", b =>
+                {
+                    b.Property<int>("OrdersOrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrdersOrderId", "ProductsId");
+
+                    b.HasIndex("ProductsId");
+
+                    b.ToTable("OrderPaintProduct");
+                });
+
             modelBuilder.Entity("PaintStore.Models.Methods.Order", b =>
                 {
                     b.Property<int>("OrderId")
@@ -221,9 +236,6 @@ namespace PaintStore.API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -241,8 +253,6 @@ namespace PaintStore.API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
 
                     b.HasIndex("SeriesId");
 
@@ -401,6 +411,21 @@ namespace PaintStore.API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("OrderPaintProduct", b =>
+                {
+                    b.HasOne("PaintStore.Models.Methods.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrdersOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PaintStore.Models.Methods.PaintProduct", null)
+                        .WithMany()
+                        .HasForeignKey("ProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PaintStore.Models.Methods.Order", b =>
                 {
                     b.HasOne("PaintStore.Models.Methods.User", null)
@@ -412,10 +437,6 @@ namespace PaintStore.API.Migrations
 
             modelBuilder.Entity("PaintStore.Models.Methods.PaintProduct", b =>
                 {
-                    b.HasOne("PaintStore.Models.Methods.Order", null)
-                        .WithMany("Products")
-                        .HasForeignKey("OrderId");
-
                     b.HasOne("PaintStore.Models.Methods.PaintSeries", "Series")
                         .WithMany("Products")
                         .HasForeignKey("SeriesId")
@@ -457,11 +478,6 @@ namespace PaintStore.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Brand");
-                });
-
-            modelBuilder.Entity("PaintStore.Models.Methods.Order", b =>
-                {
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("PaintStore.Models.Methods.PaintBrand", b =>
