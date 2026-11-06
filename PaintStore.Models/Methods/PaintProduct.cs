@@ -34,6 +34,10 @@ public class PaintProduct: IBuyable
 
     public PaintSeries Series {get;set;}
 
+    // back-link so EF maps Order <-> PaintProduct as many-to-many (join table),
+    // otherwise a product could only ever belong to one order
+    public List<Order> Orders {get;set;} = new();
+
 
     private PaintProduct() {}
 
